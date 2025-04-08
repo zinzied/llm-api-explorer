@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Free LLM API Resources</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Free LLM API Resources</h1>
+        <table id="llm-table" class="display">
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th>Description</th>
+                    <th>Free Limits/Credits</th>
+                    <th>Available Models</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for provider in providers %}
+                <tr>
+                    <td>
+                        {% if provider.link %}
+                            <a href="{{ provider.link }}" target="_blank">{{ provider.name }}</a>
+                        {% else %}
+                            {{ provider.name }}
+                        {% endif %}
+                    </td>
+                    <td>{{ provider.details }}</td>
+                    <td>{{ provider.limits }}</td>
+                    <td>
+                        <ul class="models-list">
+                        {% for model in provider.models %}
+                            <li>
+                                {{ model.name }}
+                                {% if model.limits %}
+                                    <span class="model-limits">({{ model.limits }})</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#llm-table').DataTable({
+                pageLength: 10,
+                order: [[0, 'asc']],
+                responsive: true,
+                columnDefs: [
+                    { targets: 3, width: '30%' }
+                ]
+            });
+        });
+    </script>
+</body>
+</html>

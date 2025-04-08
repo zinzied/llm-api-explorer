@@ -1,0 +1,162 @@
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.provider-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.provider-card h2 {
+    margin-top: 0;
+}
+
+.provider-card a {
+    text-decoration: none;
+    color: #2c3e50;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+#providers-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#providers-table th,
+#providers-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#providers-table th {
+    background-color: #f5f6fa;
+    font-weight: bold;
+}
+
+#providers-table tr:hover {
+    background-color: #f5f6fa;
+}
+
+#providers-table ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+#providers-table a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+#providers-table a:hover {
+    text-decoration: underline;
+}
+
+.models-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.models-list li {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.model-details {
+    color: #666;
+    font-size: 0.9em;
+    margin-left: 10px;
+}
+
+td a {
+    color: #0366d6;
+    text-decoration: none;
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+.dataTables_wrapper {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#llm-providers {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.models-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.model-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.model-name {
+    font-weight: 500;
+}
+
+.model-limits {
+    color: #666;
+    font-size: 0.9em;
+    margin-left: 8px;
+}
+/* Add these to your existing CSS */
+#llm-providers td, #llm-providers th {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.provider-limits {
+    min-width: 200px;
+    white-space: normal !important;
+}
+
+td:not(.provider-limits) {
+    padding: 8px 12px !important;
+}
+
+#llm-table {
+    width: 100%;
+    background: white;
+}
+
+#llm-table td, #llm-table th {
+    padding: 12px;
+}
+
+#llm-table a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+#llm-table a:hover {
+    text-decoration: underline;
+}

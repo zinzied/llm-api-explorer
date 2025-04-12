@@ -1,19 +1,27 @@
-from flask import Flask, render_template, jsonify
+import streamlit as st
 import requests
 import re
-import os
-from markdown import markdown
-
-app = Flask(__name__, 
-            template_folder=os.path.abspath('src/templates'),
-            static_folder=os.path.abspath('src/static'))
+from bs4 import BeautifulSoup
+import html
 
 GITHUB_RAW_URL = 'https://raw.githubusercontent.com/cheahjs/free-llm-api-resources/main/README.md'
+
+def clean_text(text):
+    # Remove HTML tags and decode HTML entities
+    text = re.sub(r'<[^>]+>', '', text)
+    text = html.unescape(text)
+    # Remove multiple spaces and newlines
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
 
 def parse_readme():
     response = requests.get(GITHUB_RAW_URL)
     response.raise_for_status()
-    lines = response.text.split('\n')
+    content = response.text
+    
+    # Clean HTML content first
+    soup = BeautifulSoup(content, 'html.parser')
+    lines = [clean_text(line) for line in content.split('\n')]
     
     providers = []
     current_provider = None
@@ -21,13 +29,14 @@ def parse_readme():
     
     for line in lines:
         line = line.strip()
-        
-        # Handle provider headers
+        if not line:
+            continue
+            
         if line.startswith('## '):
             if current_provider:
                 providers.append(current_provider)
             current_provider = {
-                'name': line.replace('## ', '').strip(),
+                'name': clean_text(line.replace('## ', '')),
                 'details': '',
                 'models': [],
                 'link': '',
@@ -36,58 +45,85 @@ def parse_readme():
             in_models_section = False
             
         elif current_provider:
-            # Handle models section
-            if line.startswith('- **Models**:'):
+            if '**Models**:' in line:
                 in_models_section = True
                 continue
                 
-            elif line.startswith('- ') and in_models_section:
-                model_info = line.replace('- ', '').strip()
+            elif line.startswith('-') and in_models_section:
+                model_info = clean_text(line.replace('- ', ''))
                 model_name = model_info
                 model_limits = ''
                 
-                # Extract model limits from parentheses or after colon
+                # Extract model name and limits from various formats
                 if '(' in model_info and ')' in model_info:
-                    model_name = model_info[:model_info.find('(')].strip()
-                    model_limits = model_info[model_info.find('(')+1:model_info.find(')')].strip()
+                    model_name = clean_text(model_info[:model_info.find('(')])
+                    model_limits = clean_text(model_info[model_info.find('(')+1:model_info.find(')')])
                 elif ':' in model_info:
                     parts = model_info.split(':', 1)
-                    model_name = parts[0].strip()
-                    model_limits = parts[1].strip()
+                    model_name = clean_text(parts[0])
+                    model_limits = clean_text(parts[1])
                 
                 current_provider['models'].append({
                     'name': model_name,
                     'limits': model_limits
                 })
                 
-            # Handle provider details and links
             elif line:
-                if '://' in line:  # Contains URL
+                if '://' in line:
                     urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', line)
                     if urls:
-                        current_provider['link'] = urls[0]
-                if 'free' in line.lower() or 'limit' in line.lower() or 'credit' in line.lower():
-                    current_provider['limits'] += line.strip() + ' '
+                        current_provider['link'] = clean_text(urls[0])
+                if any(keyword in line.lower() for keyword in ['free', 'limit', 'credit']):
+                    current_provider['limits'] += clean_text(line) + ' '
                 else:
-                    current_provider['details'] += line + ' '
+                    current_provider['details'] += clean_text(line) + ' '
     
     if current_provider:
         providers.append(current_provider)
     
     return providers
 
-@app.route('/')
-def index():
-    providers = parse_readme()
-    return render_template('index.html', providers=providers)
+def main():
+    st.set_page_config(page_title="LLM API Explorer", layout="wide")
+    st.title("LLM API Explorer")
 
-@app.route('/provider/<name>')
-def provider_details(name):
     providers = parse_readme()
-    provider = next((p for p in providers if p['name'] == name), None)
-    if provider:
-        return render_template('provider.html', provider=provider)
-    return "Provider not found", 404
+
+    # Sidebar for provider selection
+    st.sidebar.title("Provider List")
+    selected_provider = st.sidebar.selectbox(
+        "Select a provider",
+        options=[p['name'] for p in providers]
+    )
+
+    # Main content area
+    if selected_provider:
+        provider = next((p for p in providers if p['name'] == selected_provider), None)
+        
+        if provider:
+            st.header(provider['name'])
+            
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                if provider['details']:
+                    st.subheader("Details")
+                    st.write(provider['details'])
+
+                if provider['models']:
+                    st.subheader("Available Models")
+                    for model in provider['models']:
+                        with st.expander(model['name']):
+                            if model['limits']:
+                                st.write(f"**Limits:** {model['limits']}")
+            
+            with col2:
+                if provider['link']:
+                    st.markdown(f"[Visit Provider]({provider['link']})")
+                
+                if provider['limits']:
+                    st.subheader("Usage Limits")
+                    st.write(provider['limits'])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    main()
